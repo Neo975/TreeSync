@@ -4,4 +4,8 @@ public class TItem extends File{
 	public TItem(String path) {
 		super(path);
 	}
+
+	public TItem(File file) {
+		super(file.getAbsolutePath());
+	}
 }
