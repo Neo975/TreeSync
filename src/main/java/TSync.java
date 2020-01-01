@@ -1,6 +1,7 @@
 import java.io.File;
 import java.util.HashSet;
 
+//Commit 01.01.2020
 public class TSync {
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
