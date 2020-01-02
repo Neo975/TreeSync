@@ -11,8 +11,8 @@ public class TSync {
 
     public static void main(String[] args) {
 //		checkArgs(args);
-        checkArgs(new String[] {"C:\\temp2\\mike\\project\\UTA1", "C:\\temp2\\mike\\project\\UTA2"});
-//        checkArgs(new String[] {"C:\\Program Files", "C:\\Program Files (x86)"});
+//        checkArgs(new String[] {"C:\\temp2\\mike\\project\\UTA1", "C:\\temp2\\mike\\project\\UTA2"});
+        checkArgs(new String[] {"C:\\Program Files", "C:\\Program Files (x86)"});
         setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
         long startTime = System.nanoTime();
         setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
@@ -23,8 +23,7 @@ public class TSync {
 		testMethod();
 		HashSet<TItem> symmetricDifference = symmetricDifference();
 		HashSet<TItem> intersection = intersection();
-
-/*		
+/*
 		for(TItem item : symmetricDifference) {
 			System.out.println("Symmetric difference: " + item.getPath());
 		}
