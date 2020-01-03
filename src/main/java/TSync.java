@@ -18,19 +18,8 @@ public class TSync {
         setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
         long endTime = System.nanoTime();
         long duration = (endTime - startTime) / 1_000_000_000;
-        System.out.println("duration: " + duration);   //in seconds
-		
-		testMethod();
-		HashSet<TItem> symmetricDifference = symmetricDifference();
-		HashSet<TItem> intersection = intersection();
-/*
-		for(TItem item : symmetricDifference) {
-			System.out.println("Symmetric difference: " + item.getPath());
-		}
-*/
-		for(TItem item : intersection) {
-			System.out.println("Intersection: " + item.getPath());
-		}
+        System.out.println("Execution time: " + duration + " seconds");   //in seconds
+		printSymmetricDifference();
     }
 
     private static void checkArgs(String[] args) {
@@ -57,13 +46,12 @@ public class TSync {
 		File[] childs = folder.listFiles();
 		
 		if(childs == null) {
-			System.out.println("Problem accessing folder. Check if you have access rights to this directory: \"" + folder.getPath() + "\"");
+			System.err.println("Problem accessing folder. Check if you have access rights to this directory: \"" + folder.getPath() + "\"");
 			return finalSet;
 		}
 		for (File obj : childs) {
 			if (obj.isDirectory()) {
-				//recursive call
-				finalSet.addAll(scanFolder(obj, root));
+				finalSet.addAll(scanFolder(obj, root));	//recursive call
 			} else {
 				finalSet.add(new TItem(obj, root));
 			}
@@ -89,52 +77,11 @@ public class TSync {
 		return intersection;
 	}
 	
-	private static void testMethod() {
-/*		
-		File file1 = new File("C:\\temp2\\mike\\project\\UTA1\\CEUpdate.exe");
-		File file2 = new File("C:\\temp2\\mike\\project\\UTA2\\CEUpdate.exe");
-		TItem item1 = new TItem(file1, FOLDER_ONE);
-		TItem item2 = new TItem(file2, FOLDER_TWO);
-		HashSet<TItem> set1 = new HashSet<>();
-		HashSet<TItem> set2 = new HashSet<>();
-		set1.add(item1);
-		set2.add(item2);
-		boolean b = item1.equals(item2);
-		System.out.println(b);
-		System.out.println("item1.getRelative(): " + item1.getRelative());
-		System.out.println("item2.getRelative(): " + item2.getRelative());
+	private static void printSymmetricDifference() {
+		HashSet<TItem> symmetricDifference = symmetricDifference();
 		
-		for(TItem item : set1) {
-			if(set2.contains(item)) {
-				System.out.println("Matched! " + item.getRelative());
-			}
+		for(TItem item : symmetricDifference) {
+			System.out.println("The difference: " + item.getPath());
 		}
-*/
-
-/*		
-        System.out.println("setOne's size: " + setOne.size());
-        System.out.println("setTwo's size: " + setTwo.size());
-		setOne.removeAll(setTwo);
-		System.out.println("Intersection");
-        System.out.println("setOne's size: " + setOne.size());
-        System.out.println("setTwo's size: " + setTwo.size());
-*/
-		
-/*		
-		System.out.println("setOne content:");
-		for(TItem item : setOne) {
-			System.out.println(item.getRelative());
-		}
-
-		System.out.println("setTwo content:");
-		for(TItem item : setTwo) {
-			System.out.println(item.getRelative());
-		}
-
-		boolean b = setOne.retainAll(setTwo);
-		System.out.println("b = " + b);
-        System.out.println("setOne's size: " + setOne.size());
-        System.out.println("setTwo's size: " + setTwo.size());
-*/
 	}
 }

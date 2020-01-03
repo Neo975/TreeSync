@@ -51,18 +51,18 @@ public class TItem extends File {
 				crc.update(buffer, 0, readBytes);
 			}
 		} catch (FileNotFoundException e) {
-			System.out.println("File not found exception: " + this.getPath());
+			System.err.println("File not found exception: " + this.getPath());
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println("Input/output exception accessing file: " + this.getPath());
+			System.err.println("Input/output exception accessing file: " + this.getPath());
 			e.printStackTrace();
 		} finally {
 			try {
-				if(fis != null) {
+				if (fis != null) {
 					fis.close();
 				}
 			} catch (IOException e) {
-				System.out.println("An input/output exception was thrown when closing the stream");
+				System.err.println("An input/output exception was thrown when closing the stream");
 				e.printStackTrace();
 			}
 		}
