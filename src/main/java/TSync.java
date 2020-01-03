@@ -11,8 +11,8 @@ public class TSync {
 
     public static void main(String[] args) {
 //		checkArgs(args);
-//        checkArgs(new String[] {"C:\\temp2\\mike\\project\\UTA1", "C:\\temp2\\mike\\project\\UTA2"});
-        checkArgs(new String[] {"C:\\Program Files", "C:\\Program Files (x86)"});
+        checkArgs(new String[] {"C:\\temp2\\mike\\project\\UTA1", "C:\\temp2\\mike\\project\\UTA2"});
+//        checkArgs(new String[] {"C:\\Program Files", "C:\\Program Files (x86)"});
         setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
         long startTime = System.nanoTime();
         setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
@@ -25,6 +25,7 @@ public class TSync {
     private static void checkArgs(String[] args) {
         if(args.length != 2) {
             System.out.println("TreeSync, version 1.0");
+            System.out.println("Utility for compare the contents of two folders");
             System.out.println("Usage: java -jar TreeSync.jar Path_to_first_checking_folder Path_to_second_checking_folder");
             System.out.println("Example: java -jar TreeSync.jar C:\\Temp D:\\Projects");
 			System.exit(1);
@@ -81,7 +82,11 @@ public class TSync {
 		HashSet<TItem> symmetricDifference = symmetricDifference();
 		
 		for(TItem item : symmetricDifference) {
-			System.out.println("The difference: " + item.getPath());
+			if(item.getRoot().equals(FOLDER_ONE.getPath())) {
+				System.out.println("(1) " + item.getRelative());
+			} else {
+				System.out.println("(2) " + item.getRelative());
+			}
 		}
 	}
 }
