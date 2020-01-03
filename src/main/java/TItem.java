@@ -22,6 +22,10 @@ public class TItem extends File {
 		return relative.toString();
 	}
 	
+	public String getRoot() {
+		return root.toString();
+	}
+	
 	@Override
 	public boolean equals(Object other) {
 		if(other == null) {
