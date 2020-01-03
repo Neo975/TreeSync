@@ -5,7 +5,8 @@ import java.util.zip.CRC32;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
-public class TItem extends File{
+public class TItem extends File {
+	private static final int BUFFER_SIZE = 32768;
 	private Path root;
 	private Path relative;
 	private long crcValue;
@@ -39,19 +40,31 @@ public class TItem extends File{
 	}
 	
 	private long getCRC32() {
-		FileInputStream fis;
-		byte[] buffer = new byte[32768];
+		FileInputStream fis = null;
+		byte[] buffer = new byte[BUFFER_SIZE];
 		CRC32 crc = new CRC32();
+		int readBytes;
 
 		try {
 			fis = new FileInputStream(this);
-			while(fis.read(buffer) != -1) {
-				crc.update(buffer);
+			while((readBytes = fis.read(buffer)) != -1) {
+				crc.update(buffer, 0, readBytes);
 			}
 		} catch (FileNotFoundException e) {
-			
-		} catch(IOException e) {
-			
+			System.out.println("File not found exception: " + this.getPath());
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Input/output exception accessing file: " + this.getPath());
+			e.printStackTrace();
+		} finally {
+			try {
+				if(fis != null) {
+					fis.close();
+				}
+			} catch (IOException e) {
+				System.out.println("An input/output exception was thrown when closing the stream");
+				e.printStackTrace();
+			}
 		}
 		
 		return crc.getValue();
