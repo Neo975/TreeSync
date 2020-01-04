@@ -1,11 +1,12 @@
 import java.io.File;
 import java.nio.file.Path;
 import java.io.FileInputStream;
+import java.util.Comparator;
 import java.util.zip.CRC32;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
-public class TItem extends File {
+public class TItem extends File implements Comparator {
 	private static final int BUFFER_SIZE = 32768;
 	private Path root;
 	private Path relative;
@@ -25,7 +26,15 @@ public class TItem extends File {
 	public String getRoot() {
 		return root.toString();
 	}
-	
+
+	@Override
+	public int compare(Object o1, Object o2) {
+		if(!(o1 instanceof TItem) || !(o2 instanceof TItem)) {
+			return 0;
+		}
+		return ((TItem) o1).compareTo((TItem) o2);
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if(other == null) {

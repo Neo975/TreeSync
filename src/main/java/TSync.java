@@ -1,18 +1,15 @@
 import java.io.File;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.nio.file.Path;
+import java.util.TreeSet;
+import java.util.Set;
 
 public class TSync {
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
-    private static HashSet<TItem> setOne;
-    private static HashSet<TItem> setTwo;
+    private static Set<TItem> setOne;
+    private static Set<TItem> setTwo;
 
     public static void main(String[] args) {
-//		checkArgs(args);
-        checkArgs(new String[] {"C:\\temp2\\mike\\project\\UTA1", "C:\\temp2\\mike\\project\\UTA2"});
-//        checkArgs(new String[] {"C:\\Program Files", "C:\\Program Files (x86)"});
+		checkArgs(args);
         setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
         long startTime = System.nanoTime();
         setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
@@ -24,10 +21,10 @@ public class TSync {
 
     private static void checkArgs(String[] args) {
         if(args.length != 2) {
-            System.out.println("TreeSync, version 1.0");
+            System.out.println("TreeSync, version 1.1");
             System.out.println("Utility for compare the contents of two folders");
-            System.out.println("Usage: java -jar TreeSync.jar Path_to_first_checking_folder Path_to_second_checking_folder");
-            System.out.println("Example: java -jar TreeSync.jar C:\\Temp D:\\Projects");
+            System.out.println("Usage: java -jar ts.jar Path_to_first_checking_folder Path_to_second_checking_folder");
+            System.out.println("Example: java -jar ts.jar C:\\Temp D:\\Projects");
 			System.exit(1);
         }
         FOLDER_ONE = new File(args[0]);
@@ -42,8 +39,8 @@ public class TSync {
         }
     }
 
-    private static HashSet<TItem> scanFolder(File folder, File root) {
-        HashSet<TItem> finalSet = new HashSet<>();
+    private static Set<TItem> scanFolder(File folder, File root) {
+        TreeSet<TItem> finalSet = new TreeSet<>();
 		File[] childs = folder.listFiles();
 		
 		if(childs == null) {
@@ -61,8 +58,8 @@ public class TSync {
         return finalSet;
     }
 	
-	private static HashSet<TItem> symmetricDifference() {
-		HashSet<TItem> symDiff = new HashSet<>();
+	private static Set<TItem> symmetricDifference() {
+		TreeSet<TItem> symDiff = new TreeSet<>();
 		symDiff.addAll(setOne);
 		symDiff.addAll(setTwo);
 		symDiff.removeAll(intersection());
@@ -70,8 +67,8 @@ public class TSync {
 		return symDiff;
 	}
 	
-	private static HashSet<TItem> intersection() {
-		HashSet<TItem> intersection = new HashSet<>();
+	private static Set<TItem> intersection() {
+		TreeSet<TItem> intersection = new TreeSet<>();
 		intersection.addAll(setOne);
 		intersection.retainAll(setTwo);
 		
@@ -79,7 +76,7 @@ public class TSync {
 	}
 	
 	private static void printSymmetricDifference() {
-		HashSet<TItem> symmetricDifference = symmetricDifference();
+		Set<TItem> symmetricDifference = symmetricDifference();
 		
 		for(TItem item : symmetricDifference) {
 			if(item.getRoot().equals(FOLDER_ONE.getPath())) {

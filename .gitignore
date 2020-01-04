@@ -1,6 +1,4 @@
-/build.gradle
 /gradlew
-/settings.gradle
 /gradlew.bat
 /.gradle/
 /.idea/
@@ -8,4 +6,4 @@
 /gradle/
 /UTA1
 /UTA2
-*.class
+
