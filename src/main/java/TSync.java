@@ -10,8 +10,8 @@ public class TSync {
     private static HashSet<TItem> setTwo;
 
     public static void main(String[] args) {
-//		checkArgs(args);
-        checkArgs(new String[] {"C:\\temp2\\mike\\project\\UTA1", "C:\\temp2\\mike\\project\\UTA2"});
+		checkArgs(args);
+//        checkArgs(new String[] {"C:\\temp2\\mike\\project\\UTA1", "C:\\temp2\\mike\\project\\UTA2"});
 //        checkArgs(new String[] {"C:\\Program Files", "C:\\Program Files (x86)"});
         setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
         long startTime = System.nanoTime();
