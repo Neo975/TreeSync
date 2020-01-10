@@ -1,48 +1,65 @@
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.zip.CRC32;
 
 public class TItemCRC extends TItemGeneric {
+	private static final int BUFFER_SIZE = 32768;
+	private long crcValue;
 
     public TItemCRC(File file, File root) {
         super(file, root);
-		System.out.println("TItemCRC constructor executing");
-
+        crcValue = getCRC32();
 	}
 
-	public boolean equals(Object other) {
-		System.out.println("TItemCRC equals() method executing");
+	public long getCrcValue() {
+    	return crcValue;
+	}
 
+	@Override
+	public boolean equals(Object other) {
 		if(other == null) {
 			return false;
 		}
-		if(!(other instanceof TItemGeneric)) {
+		if(!(other instanceof TItemCRC)) {
 			return false;
 		}
-
-		return (this.getRelative()).equals(((TItemGeneric)other).getRelative()) && (this.crcValue == ((TItemGeneric)other).crcValue);
+		return this.crcValue == ((TItemCRC)other).crcValue;
     }
 
-    public int hashCode() {
-		System.out.println("TItemCRC hashCode() method executing");
+    @Override
+	public int hashCode() {
 		return relative.hashCode() + (int)(crcValue ^ (crcValue >>> 32));
 	}
 
-/*
-	@Override
-	public int compare(Object o1, Object o2) {
-		System.out.println("TIC compareTo");
-		if(!(o1 instanceof TItemGeneric) || !(o2 instanceof TItemGeneric)) {
-			return 0;
+	private long getCRC32() {
+		FileInputStream fis = null;
+		byte[] buffer = new byte[BUFFER_SIZE];
+		CRC32 crc = new CRC32();
+		int readBytes;
+
+		try {
+			fis = new FileInputStream(this);
+			while((readBytes = fis.read(buffer)) != -1) {
+				crc.update(buffer, 0, readBytes);
+			}
+		} catch (FileNotFoundException e) {
+			System.err.println("File not found exception: " + this.getPath());
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("Input/output exception accessing file: " + this.getPath());
+			e.printStackTrace();
+		} finally {
+			try {
+				if (fis != null) {
+					fis.close();
+				}
+			} catch (IOException e) {
+				System.err.println("An input/output exception was thrown when closing the stream");
+				e.printStackTrace();
+			}
 		}
-		return ((TItemGeneric) o1).compareTo((TItemGeneric) o2);
+		return crc.getValue();
 	}
-
- */
-/*
-	@Override
-	public int compareTo(File pathname) {
-		System.out.println("TItemCRC.compareTo()");
-		return 1;
-	}
-
- */
 }

@@ -9,7 +9,7 @@ enum Type {
 }
 
 public class TSync {
-	private static final String PROGRAM_VERSION = "1.2.1";
+	private static final String PROGRAM_VERSION = "1.2.2";
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
     private static Set<TItemGeneric> setOne;
@@ -97,7 +97,6 @@ public class TSync {
 	
 	private static Set<TItemGeneric> intersection() {
 		TreeSet<TItemGeneric> intersection = new TreeSet<>(comparator);
-//		TreeSet<TItemGeneric> intersection = new TreeSet<>();
 		intersection.addAll(setOne);
 		intersection.retainAll(setTwo);
 		
