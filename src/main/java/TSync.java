@@ -1,12 +1,21 @@
 import java.io.File;
+import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.Set;
 
+enum Type {
+	CRC,
+	FILENAME
+}
+
 public class TSync {
+	private static final String PROGRAM_VERSION = "1.2.1";
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
-    private static Set<TItem> setOne;
-    private static Set<TItem> setTwo;
+    private static Set<TItemGeneric> setOne;
+    private static Set<TItemGeneric> setTwo;
+    private static Type type;
+    private static Comparator<TItemGeneric> comparator;
 
     public static void main(String[] args) {
 		checkArgs(args);
@@ -20,15 +29,26 @@ public class TSync {
     }
 
     private static void checkArgs(String[] args) {
-        if(args.length != 2) {
-            System.out.println("TreeSync, version 1.1");
-            System.out.println("Utility for compare the contents of two folders");
-            System.out.println("Usage: java -jar ts.jar Path_to_first_checking_folder Path_to_second_checking_folder");
-            System.out.println("Example: java -jar ts.jar C:\\Temp D:\\Projects");
+        if(args.length != 4) {
+			printHelp();
 			System.exit(1);
         }
-        FOLDER_ONE = new File(args[0]);
-        FOLDER_TWO = new File(args[1]);
+        if(!args[0].equalsIgnoreCase("-c")) {
+			printHelp();
+			System.exit(1);
+		}
+        if(!args[1].equalsIgnoreCase("crc") && !args[1].equalsIgnoreCase("filename")) {
+        	printHelp();
+			System.exit(1);
+		}
+        if(args[1].equalsIgnoreCase("crc")) {
+        	type = Type.CRC;
+		}
+        if(args[1].equalsIgnoreCase("filename")) {
+        	type = Type.FILENAME;
+		}
+        FOLDER_ONE = new File(args[2]);
+        FOLDER_TWO = new File(args[3]);
         if (!FOLDER_ONE.exists() || !FOLDER_ONE.isDirectory()) {
             System.out.println("First checking file object is not exists or it is not a folder");
             System.exit(1);
@@ -37,29 +57,37 @@ public class TSync {
             System.out.println("Second checking file object is not exists or it is not a folder");
             System.exit(1);
         }
+		if(type == Type.CRC) {
+			comparator = new TComparatorItemCRC();
+		}
+		if(type == Type.FILENAME) {
+			comparator = new TComparatorItemFilename();
+		}
     }
 
-    private static Set<TItem> scanFolder(File folder, File root) {
-        TreeSet<TItem> finalSet = new TreeSet<>();
-		File[] childs = folder.listFiles();
-		
-		if(childs == null) {
+    private static Set<TItemGeneric> scanFolder(File folder, File root) {
+        TreeSet<TItemGeneric> finalSet = new TreeSet<>(comparator);
+		File[] childes = folder.listFiles();
+
+		if(childes == null) {
 			System.err.println("Problem accessing folder. Check if you have access rights to this directory: \"" + folder.getPath() + "\"");
 			return finalSet;
 		}
-		for (File obj : childs) {
+		for (File obj : childes) {
 			if (obj.isDirectory()) {
-				finalSet.addAll(scanFolder(obj, root));	//recursive call
-			} else {
-				finalSet.add(new TItem(obj, root));
+				finalSet.addAll(scanFolder(obj, root));		//recursive call
+			} else if (type == Type.CRC) {
+				finalSet.add(new TItemCRC(obj, root));		//recursive call
+			} else if (type == Type.FILENAME) {
+				finalSet.add(new TItemFilename(obj, root));	//recursive call
 			}
 		}
 
         return finalSet;
     }
 	
-	private static Set<TItem> symmetricDifference() {
-		TreeSet<TItem> symDiff = new TreeSet<>();
+	private static Set<TItemGeneric> symmetricDifference() {
+		TreeSet<TItemGeneric> symDiff = new TreeSet<>(comparator);
 		symDiff.addAll(setOne);
 		symDiff.addAll(setTwo);
 		symDiff.removeAll(intersection());
@@ -67,8 +95,9 @@ public class TSync {
 		return symDiff;
 	}
 	
-	private static Set<TItem> intersection() {
-		TreeSet<TItem> intersection = new TreeSet<>();
+	private static Set<TItemGeneric> intersection() {
+		TreeSet<TItemGeneric> intersection = new TreeSet<>(comparator);
+//		TreeSet<TItemGeneric> intersection = new TreeSet<>();
 		intersection.addAll(setOne);
 		intersection.retainAll(setTwo);
 		
@@ -76,14 +105,23 @@ public class TSync {
 	}
 	
 	private static void printSymmetricDifference() {
-		Set<TItem> symmetricDifference = symmetricDifference();
+		Set<TItemGeneric> symmetricDifference = symmetricDifference();
 		
-		for(TItem item : symmetricDifference) {
+		for(TItemGeneric item : symmetricDifference) {
 			if(item.getRoot().equals(FOLDER_ONE.getPath())) {
 				System.out.println("(1) " + item.getRelative());
 			} else {
 				System.out.println("(2) " + item.getRelative());
 			}
 		}
+	}
+
+	private static void printHelp() {
+		System.out.println("TreeSync, version " + PROGRAM_VERSION);
+		System.out.println("Utility for compare the contents of two folders");
+		System.out.println("1) Usage checking by CRC: java -jar ts.jar -c crc Path_to_first_checking_folder Path_to_second_checking_folder");
+		System.out.println("2) Usage checking by file name: java -jar ts.jar -c filename Path_to_first_checking_folder Path_to_second_checking_folder");
+		System.out.println("Example 1: java -jar ts.jar -c crc C:\\Temp D:\\Projects");
+		System.out.println("Example 2: java -jar ts.jar -c filename C:\\Temp D:\\Projects");
 	}
 }

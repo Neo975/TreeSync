@@ -6,13 +6,13 @@ import java.util.zip.CRC32;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
-public class TItem extends File implements Comparator {
+public abstract class TItemGeneric extends File {
 	private static final int BUFFER_SIZE = 32768;
 	private Path root;
-	private Path relative;
-	private long crcValue;
-	
-	public TItem(File file, File root) {
+	protected Path relative;
+	protected long crcValue;
+
+	public TItemGeneric(File file, File root) {
 		super(file.getPath());
 		this.root = root.toPath();
 		this.relative = this.root.relativize(file.toPath());
@@ -27,31 +27,55 @@ public class TItem extends File implements Comparator {
 		return root.toString();
 	}
 
-	@Override
-	public int compare(Object o1, Object o2) {
-		if(!(o1 instanceof TItem) || !(o2 instanceof TItem)) {
-			return 0;
-		}
-		return ((TItem) o1).compareTo((TItem) o2);
+	public long getCRC() {
+		return crcValue;
 	}
 
+/*
 	@Override
 	public boolean equals(Object other) {
-		if(other == null) {
-			return false;
+		System.out.println("---");
+		if (this instanceof TItemCRC) {
+			return ((TItemCRC)this).equals(other);
 		}
-		if(!(other instanceof TItem)) {
-			return false;
+		if (this instanceof TItemFilename) {
+			return ((TItemFilename)this).equals(other);
 		}
-
-		return (this.getRelative()).equals(((TItem)other).getRelative()) && (this.crcValue == ((TItem)other).crcValue);
+		return false;
 	}
-	
-	@Override
+*/
+	/*
 	public int hashCode() {
-		return relative.hashCode() + (int)(crcValue ^ (crcValue >>> 32));
+		System.out.println("===");
+		if (this instanceof TItemCRC) {
+			return ((TItemCRC)this).hashCode();
+		}
+		if (this instanceof TItemFilename) {
+			return ((TItemFilename)this).hashCode();
+		}
+		return 42;
 	}
-	
+*/
+/*
+	@Override
+	public int compare(Object o1, Object o2) {
+		System.out.println("+++");
+		if(!(o1 instanceof TItemGeneric) || !(o2 instanceof TItemGeneric)) {
+			return 0;
+		}
+		return ((TItemGeneric) o1).compareTo((TItemGeneric) o2);
+	}
+
+	@Override
+	public int compare(TItemGeneric o1, TItemGeneric o2) {
+		System.out.println("+++");
+		if(!(o1 instanceof TItemGeneric) || !(o2 instanceof TItemGeneric)) {
+			return 0;
+		}
+		return ((TItemGeneric) o1).compareTo((TItemGeneric) o2);
+	}
+
+*/
 	private long getCRC32() {
 		FileInputStream fis = null;
 		byte[] buffer = new byte[BUFFER_SIZE];
