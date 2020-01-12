@@ -1,15 +1,11 @@
 import java.io.File;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.Set;
 
-enum Type {
-	CRC,
-	FILENAME
-}
-
 public class TSync {
-	private static final String PROGRAM_VERSION = "1.2.2";
+	private static final String PROGRAM_VERSION = "1.2.4";
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
     private static Set<TItemGeneric> setOne;
@@ -19,9 +15,9 @@ public class TSync {
 
     public static void main(String[] args) {
 		checkArgs(args);
-        setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
+        setOne = scanFolder(FOLDER_ONE, FOLDER_ONE, 1);
         long startTime = System.nanoTime();
-        setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
+        setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO, 2);
         long endTime = System.nanoTime();
         long duration = (endTime - startTime) / 1_000_000_000;
         System.out.println("Execution time: " + duration + " seconds");   //in seconds
@@ -65,7 +61,7 @@ public class TSync {
 		}
     }
 
-    private static Set<TItemGeneric> scanFolder(File folder, File root) {
+    private static Set<TItemGeneric> scanFolder(File folder, File root, int priority) {
         TreeSet<TItemGeneric> finalSet = new TreeSet<>(comparator);
 		File[] childes = folder.listFiles();
 
@@ -75,11 +71,11 @@ public class TSync {
 		}
 		for (File obj : childes) {
 			if (obj.isDirectory()) {
-				finalSet.addAll(scanFolder(obj, root));		//recursive call
+				finalSet.addAll(scanFolder(obj, root, priority));		//recursive call
 			} else if (type == Type.CRC) {
-				finalSet.add(new TItemCRC(obj, root));		//recursive call
+				finalSet.add(new TItemCRC(obj, root, priority));		//recursive call
 			} else if (type == Type.FILENAME) {
-				finalSet.add(new TItemFilename(obj, root));	//recursive call
+				finalSet.add(new TItemFilename(obj, root, priority));	//recursive call
 			}
 		}
 
@@ -99,14 +95,18 @@ public class TSync {
 		TreeSet<TItemGeneric> intersection = new TreeSet<>(comparator);
 		intersection.addAll(setOne);
 		intersection.retainAll(setTwo);
-		
+
 		return intersection;
 	}
 	
 	private static void printSymmetricDifference() {
 		Set<TItemGeneric> symmetricDifference = symmetricDifference();
-		
-		for(TItemGeneric item : symmetricDifference) {
+		if (symmetricDifference.size() == 0) {
+			return;
+		}
+		TItemGeneric[] items = symmetricDifference.toArray(new TItemGeneric[1]);
+		Arrays.sort(items, new TComparatorArray());
+		for(TItemGeneric item : items) {
 			if(item.getRoot().equals(FOLDER_ONE.getPath())) {
 				System.out.println("(1) " + item.getRelative());
 			} else {
@@ -122,5 +122,10 @@ public class TSync {
 		System.out.println("2) Usage checking by file name: java -jar ts.jar -c filename Path_to_first_checking_folder Path_to_second_checking_folder");
 		System.out.println("Example 1: java -jar ts.jar -c crc C:\\Temp D:\\Projects");
 		System.out.println("Example 2: java -jar ts.jar -c filename C:\\Temp D:\\Projects");
+	}
+
+	private enum Type {
+		CRC,
+		FILENAME
 	}
 }

@@ -2,8 +2,8 @@ import java.io.File;
 
 public class TItemFilename extends TItemGeneric {
 
-    public TItemFilename(File file, File root) {
-        super(file, root);
+    public TItemFilename(File file, File root, int priority) {
+        super(file, root, priority);
     }
 
     @Override
@@ -22,5 +22,4 @@ public class TItemFilename extends TItemGeneric {
     public int hashCode() {
         return relative.hashCode();
     }
-
 }
