@@ -5,7 +5,7 @@ import java.util.TreeSet;
 import java.util.Set;
 
 public class TSync {
-	private static final String PROGRAM_VERSION = "1.2.4";
+	private static final String PROGRAM_VERSION = "1.2.5";
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
     private static Set<TItemGeneric> setOne;
