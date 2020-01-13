@@ -5,16 +5,20 @@ import java.util.TreeSet;
 import java.util.Set;
 
 public class TSync {
-	private static final String PROGRAM_VERSION = "1.2.5";
+	private static final String PROGRAM_VERSION = "1.2.6";
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
     private static Set<TItemGeneric> setOne;
     private static Set<TItemGeneric> setTwo;
     private static Type type;
     private static Comparator<TItemGeneric> comparator;
+    private static int countSubItems = 0;
+    private static int currentStage = 0;
 
     public static void main(String[] args) {
 		checkArgs(args);
+		countSubItems += countSubItems(FOLDER_ONE);
+		countSubItems += countSubItems(FOLDER_TWO);
         setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
         long startTime = System.nanoTime();
         setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
@@ -74,14 +78,37 @@ public class TSync {
 				finalSet.addAll(scanFolder(obj, root));		//recursive call
 			} else if (type == Type.CRC) {
 				finalSet.add(new TItemCRC(obj, root));		//recursive call
+				currentStage++;
+				printProgressBar(currentStage, countSubItems);
 			} else if (type == Type.FILENAME) {
 				finalSet.add(new TItemFilename(obj, root));	//recursive call
+				currentStage++;
+				printProgressBar(currentStage, countSubItems);
 			}
 		}
 
         return finalSet;
     }
-	
+
+	private static int countSubItems(File folder) {
+		int count = 0;
+		File[] childes = folder.listFiles();
+
+		if(childes == null) {
+			System.err.println("Problem accessing folder. Check if you have access rights to this directory: \"" + folder.getPath() + "\"");
+			return 0;
+		}
+		for (File obj : childes) {
+			if (obj.isDirectory()) {
+				count += countSubItems(obj);	//recursive call
+			} else {
+				count += 1;						//recursive call
+			}
+		}
+
+		return count;
+	}
+
 	private static Set<TItemGeneric> symmetricDifference() {
 		TreeSet<TItemGeneric> symDiff = new TreeSet<>(comparator);
 		symDiff.addAll(setOne);
@@ -122,6 +149,11 @@ public class TSync {
 		System.out.println("2) Usage checking by file name: java -jar ts.jar -c filename Path_to_first_checking_folder Path_to_second_checking_folder");
 		System.out.println("Example 1: java -jar ts.jar -c crc C:\\Temp D:\\Projects");
 		System.out.println("Example 2: java -jar ts.jar -c filename C:\\Temp D:\\Projects");
+	}
+
+	private static void printProgressBar(int currentStage, int maxStage) {
+    	int percent = currentStage * 100 / maxStage;
+    	System.out.print("Processing: " + percent + "%\r");
 	}
 
 	private enum Type {
