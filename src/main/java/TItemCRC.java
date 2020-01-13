@@ -8,8 +8,8 @@ public class TItemCRC extends TItemGeneric {
 	private static final int BUFFER_SIZE = 32768;
 	private long crcValue;
 
-    public TItemCRC(File file, File root, int priority) {
-        super(file, root, priority);
+    public TItemCRC(File file, File root) {
+        super(file, root);
         crcValue = getCRC32();
 	}
 

@@ -15,9 +15,9 @@ public class TSync {
 
     public static void main(String[] args) {
 		checkArgs(args);
-        setOne = scanFolder(FOLDER_ONE, FOLDER_ONE, 1);
+        setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
         long startTime = System.nanoTime();
-        setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO, 2);
+        setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
         long endTime = System.nanoTime();
         long duration = (endTime - startTime) / 1_000_000_000;
         System.out.println("Execution time: " + duration + " seconds");   //in seconds
@@ -61,7 +61,7 @@ public class TSync {
 		}
     }
 
-    private static Set<TItemGeneric> scanFolder(File folder, File root, int priority) {
+    private static Set<TItemGeneric> scanFolder(File folder, File root) {
         TreeSet<TItemGeneric> finalSet = new TreeSet<>(comparator);
 		File[] childes = folder.listFiles();
 
@@ -71,11 +71,11 @@ public class TSync {
 		}
 		for (File obj : childes) {
 			if (obj.isDirectory()) {
-				finalSet.addAll(scanFolder(obj, root, priority));		//recursive call
+				finalSet.addAll(scanFolder(obj, root));		//recursive call
 			} else if (type == Type.CRC) {
-				finalSet.add(new TItemCRC(obj, root, priority));		//recursive call
+				finalSet.add(new TItemCRC(obj, root));		//recursive call
 			} else if (type == Type.FILENAME) {
-				finalSet.add(new TItemFilename(obj, root, priority));	//recursive call
+				finalSet.add(new TItemFilename(obj, root));	//recursive call
 			}
 		}
 
