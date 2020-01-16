@@ -2,7 +2,7 @@ import java.io.File;
 import java.util.*;
 
 public class TSync {
-	private static final String PROGRAM_VERSION = "1.2.6";
+	private static final String PROGRAM_VERSION = "1.3.0";
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
     private static Set<TItemGeneric> setOne;
@@ -16,9 +16,9 @@ public class TSync {
 
     public static void main(String[] args) {
 		checkArgs(args);
+		long startTime = System.nanoTime();
 		countSubItems += countSubItems(FOLDER_ONE);
 		countSubItems += countSubItems(FOLDER_TWO);
-        long startTime = System.nanoTime();
 		mapOne = new TreeMap<>();
 		mapTwo = new TreeMap<>();
         setOne = scanFolder(FOLDER_ONE, FOLDER_ONE, mapOne);
@@ -176,14 +176,14 @@ public class TSync {
 					System.out.println(step + ") " + item.getAbsolutePath());
 				}
 			}
-			System.out.println("-----------------------------------------------------------------");
+//			System.out.println("-----------------------------------------------------------------");
 			step++;
 		}
 	}
 
 	private static void printHelp() {
 		System.out.println("TreeSync, version " + PROGRAM_VERSION);
-		System.out.println("Utility for compare the contents of two folders");
+		System.out.println("Utility for compare the contents of two folders and duplicates search");
 		System.out.println("1) Usage checking by CRC: java -jar ts.jar -c crc Path_to_first_checking_folder Path_to_second_checking_folder");
 		System.out.println("2) Usage checking by file name: java -jar ts.jar -c filename Path_to_first_checking_folder Path_to_second_checking_folder");
 		System.out.println("Example 1: java -jar ts.jar -c crc C:\\Temp D:\\Projects");
