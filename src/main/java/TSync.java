@@ -1,8 +1,5 @@
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.TreeSet;
-import java.util.Set;
+import java.util.*;
 
 public class TSync {
 	private static final String PROGRAM_VERSION = "1.2.6";
@@ -10,6 +7,8 @@ public class TSync {
     private static File FOLDER_TWO;
     private static Set<TItemGeneric> setOne;
     private static Set<TItemGeneric> setTwo;
+	private static Map<Long, List<TItemGeneric>> mapOne;
+	private static Map<Long, List<TItemGeneric>> mapTwo;
     private static Type type;
     private static Comparator<TItemGeneric> comparator;
     private static int countSubItems = 0;
@@ -19,13 +18,19 @@ public class TSync {
 		checkArgs(args);
 		countSubItems += countSubItems(FOLDER_ONE);
 		countSubItems += countSubItems(FOLDER_TWO);
-        setOne = scanFolder(FOLDER_ONE, FOLDER_ONE);
         long startTime = System.nanoTime();
-        setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO);
+		mapOne = new TreeMap<>();
+		mapTwo = new TreeMap<>();
+        setOne = scanFolder(FOLDER_ONE, FOLDER_ONE, mapOne);
+        setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO, mapTwo);
         long endTime = System.nanoTime();
         long duration = (endTime - startTime) / 1_000_000_000;
         System.out.println("Execution time: " + duration + " seconds");   //in seconds
 		printSymmetricDifference();
+		System.out.println("Printout duplicates for " + FOLDER_ONE);
+		printDuplicates(mapOne);
+		System.out.println("Printout duplicates for " + FOLDER_TWO);
+		printDuplicates(mapTwo);
     }
 
     private static void checkArgs(String[] args) {
@@ -65,7 +70,7 @@ public class TSync {
 		}
     }
 
-    private static Set<TItemGeneric> scanFolder(File folder, File root) {
+    private static Set<TItemGeneric> scanFolder(File folder, File root, Map<Long, List<TItemGeneric>> map) {
         TreeSet<TItemGeneric> finalSet = new TreeSet<>(comparator);
 		File[] childes = folder.listFiles();
 
@@ -75,13 +80,29 @@ public class TSync {
 		}
 		for (File obj : childes) {
 			if (obj.isDirectory()) {
-				finalSet.addAll(scanFolder(obj, root));		//recursive call
+				finalSet.addAll(scanFolder(obj, root, map));		//recursive call
 			} else if (type == Type.CRC) {
-				finalSet.add(new TItemCRC(obj, root));		//recursive call
+				TItemGeneric item = new TItemCRC(obj, root);
+				finalSet.add(item);		//recursive call
+				if (map.get(item.getCrcValue()) != null) {	//уже имеется список, состоящий минимум из одного файла
+					map.get(item.getCrcValue()).add(item);	//Найден дубликат файла
+				} else {
+					List<TItemGeneric> list = new ArrayList<>();
+					list.add(item);
+					map.put(item.getCrcValue(), list);
+				}
 				currentStage++;
 				printProgressBar(currentStage, countSubItems);
 			} else if (type == Type.FILENAME) {
-				finalSet.add(new TItemFilename(obj, root));	//recursive call
+				TItemGeneric item = new TItemFilename(obj, root);
+				finalSet.add(item);	//recursive call
+				if (map.get(item.getCrcValue()) != null) {	//уже имеется список, состоящий минимум из одного файла
+					map.get(item.getCrcValue()).add(item);	//Найден дубликат файла
+				} else {
+					List<TItemGeneric> list = new ArrayList<>();
+					list.add(item);
+					map.put(item.getCrcValue(), list);
+				}
 				currentStage++;
 				printProgressBar(currentStage, countSubItems);
 			}
@@ -133,12 +154,30 @@ public class TSync {
 		}
 		TItemGeneric[] items = symmetricDifference.toArray(new TItemGeneric[1]);
 		Arrays.sort(items, new TComparatorArray());
+		System.out.println("Printout of differences between folder contents:");
 		for(TItemGeneric item : items) {
 			if(item.getRoot().equals(FOLDER_ONE.getPath())) {
 				System.out.println("(1) " + item.getRelative());
 			} else {
 				System.out.println("(2) " + item.getRelative());
 			}
+		}
+	}
+	
+	private static void printDuplicates(Map<Long, List<TItemGeneric>> map) {
+		System.out.println("Display duplicate file information:");
+		Iterator<List<TItemGeneric>> iterator = map.values().iterator();
+		int step = 1;
+		while (iterator.hasNext()) {
+			List<TItemGeneric> list = iterator.next();
+			if (list.size() > 1) {	//Найдены дубликаты
+				System.out.println(step + ") Duplicates found:");
+				for (TItemGeneric item : list) {
+					System.out.println(step + ") " + item.getAbsolutePath());
+				}
+			}
+			System.out.println("-----------------------------------------------------------------");
+			step++;
 		}
 	}
 
