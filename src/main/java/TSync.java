@@ -9,12 +9,18 @@ public class TSync {
     private static Set<TItemGeneric> setTwo;
 	private static Map<Long, List<TItemGeneric>> mapOne;
 	private static Map<Long, List<TItemGeneric>> mapTwo;
-    private static Type type;
-    private static Comparator<TItemGeneric> comparator;
+    private static CompareType type;
+//    private static Comparator<TItemGeneric> comparator;
     private static int countSubItems = 0;
     private static int currentStage = 0;
+	
+	private File folderOne;
+	private File folderTwo;
+	private CompareType compareType;
+	private Comparator<TItemGeneric> comparator;
 
     public static void main(String[] args) {
+/*		
 		checkArgs(args);
 		long startTime = System.nanoTime();
 		countSubItems += countSubItems(FOLDER_ONE);
@@ -31,8 +37,81 @@ public class TSync {
 		printDuplicates(mapOne);
 		System.out.println("Printout duplicates for " + FOLDER_TWO);
 		printDuplicates(mapTwo);
+*/
+		File folderOne = parseArgsForFolderOne(args);
+		File folderTwo = parseArgsForFolderTwo(args);
+		CompareType compareType = parseArgsForType(args);
+		if (folderOne == null || folderTwo == null || compareType == null) {
+			printHelp();
+			System.exit(1);
+		}
+		TSync tsyncInstance = new TSync(folderOne, folderTwo, compareType);
     }
+	
+	public TSync(File folderOne, File folderTwo, CompareType compareType) {
+		if (folderOne == null) {
+			throw new IllegalArgumentException("Argument folderOne can't be null");
+		}
+		if (folderTwo == null) {
+			throw new IllegalArgumentException("Argument folderTwo can't be null");
+		}
+        if (folderOne.exists() || !folderOne.isDirectory()) {
+			throw new IllegalArgumentException("Object folderOne is not exists or it is not a folder");
+        }
+        if (!FOLDER_TWO.exists() || !FOLDER_TWO.isDirectory()) {
+			throw new IllegalArgumentException("Object folderTwo is not exists or it is not a folder");
+        }
+		if (compareType == null) {
+			throw new IllegalArgumentException("Argument compareType can't be null");
+		}
+		this.folderOne = folderOne;
+		this.folderTwo = folderTwo;
+		this.compareType = compareType;
+	}
+	
+	public 
+	
+	private static File parseArgsForFolderOne(String[] args) {
+		if (args.length != 4) {
+			return null;
+		}
 
+		return new File(args[2]);
+	}
+	
+	private static File parseArgsForFolderTwo(String[] args) {
+		if (args.length != 4) {
+			return null;
+		}
+
+		return new File(args[3]);
+	}
+	
+	private static CompareType parseArgsForType(String[] args) {
+        if(args.length != 4) {
+			return null;
+        }
+        if(!args[0].equalsIgnoreCase("-c")) {
+			return null;
+		}
+        if(!args[1].equalsIgnoreCase("crc") && !args[1].equalsIgnoreCase("filename")) {
+			return null;
+		}
+        if(args[1].equalsIgnoreCase("crc")) {
+			comparator = new TComparatorItemCRC();
+
+        	return CompareType.CRC;
+		}
+        if(args[1].equalsIgnoreCase("filename")) {
+			comparator = new TComparatorItemFilename();
+
+        	return CompareType.FILENAME;
+		}
+		
+		return null;
+	}
+
+/*
     private static void checkArgs(String[] args) {
         if(args.length != 4) {
 			printHelp();
@@ -69,6 +148,7 @@ public class TSync {
 			comparator = new TComparatorItemFilename();
 		}
     }
+*/
 
     private static Set<TItemGeneric> scanFolder(File folder, File root, Map<Long, List<TItemGeneric>> map) {
         TreeSet<TItemGeneric> finalSet = new TreeSet<>(comparator);
@@ -81,7 +161,7 @@ public class TSync {
 		for (File obj : childes) {
 			if (obj.isDirectory()) {
 				finalSet.addAll(scanFolder(obj, root, map));		//recursive call
-			} else if (type == Type.CRC) {
+			} else if (type == CompareType.CRC) {
 				TItemGeneric item = new TItemCRC(obj, root);
 				finalSet.add(item);		//recursive call
 				if (map.get(item.getCrcValue()) != null) {	//уже имеется список, состоящий минимум из одного файла
@@ -93,7 +173,7 @@ public class TSync {
 				}
 				currentStage++;
 				printProgressBar(currentStage, countSubItems);
-			} else if (type == Type.FILENAME) {
+			} else if (type == CompareType.FILENAME) {
 				TItemGeneric item = new TItemFilename(obj, root);
 				finalSet.add(item);	//recursive call
 				if (map.get(item.getCrcValue()) != null) {	//уже имеется список, состоящий минимум из одного файла
@@ -195,7 +275,7 @@ public class TSync {
     	System.out.print("Processing: " + percent + "%\r");
 	}
 
-	private enum Type {
+	private enum CompareType {
 		CRC,
 		FILENAME
 	}
