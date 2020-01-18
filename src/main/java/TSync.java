@@ -3,6 +3,7 @@ import java.util.*;
 
 public class TSync {
 	private static final String PROGRAM_VERSION = "1.3.0";
+/*
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
     private static Set<TItemGeneric> setOne;
@@ -10,14 +11,14 @@ public class TSync {
 	private static Map<Long, List<TItemGeneric>> mapOne;
 	private static Map<Long, List<TItemGeneric>> mapTwo;
     private static CompareType type;
-//    private static Comparator<TItemGeneric> comparator;
+    private static Comparator<TItemGeneric> comparator;
+*/
     private static int countSubItems = 0;
     private static int currentStage = 0;
-	
-	private File folderOne;
-	private File folderTwo;
-	private CompareType compareType;
-	private Comparator<TItemGeneric> comparator;
+
+	private File rootFolder;
+	private Set<TItemGeneric> itemSet;
+	private Map<Long, List<TItemGeneric>> itemMap;
 
     public static void main(String[] args) {
 /*		
@@ -45,31 +46,41 @@ public class TSync {
 			printHelp();
 			System.exit(1);
 		}
-		TSync tsyncInstance = new TSync(folderOne, folderTwo, compareType);
+		TSync tSyncInstance1 = new TSync(folderOne);
+		TSync tSyncInstance2 = new TSync(folderTwo);
+		tSyncInstance1.getComplement(tSyncInstance2, CompareType.CRC);
     }
 	
-	public TSync(File folderOne, File folderTwo, CompareType compareType) {
-		if (folderOne == null) {
-			throw new IllegalArgumentException("Argument folderOne can't be null");
+	public TSync(File rootFolder) {
+		if (rootFolder == null) {
+			throw new IllegalArgumentException("Argument rootFolder can't be null");
 		}
-		if (folderTwo == null) {
-			throw new IllegalArgumentException("Argument folderTwo can't be null");
-		}
-        if (folderOne.exists() || !folderOne.isDirectory()) {
-			throw new IllegalArgumentException("Object folderOne is not exists or it is not a folder");
+        if (!rootFolder.exists() || !rootFolder.isDirectory()) {
+			throw new IllegalArgumentException("Object rootFolder is not exists or it is not a folder");
         }
-        if (!FOLDER_TWO.exists() || !FOLDER_TWO.isDirectory()) {
-			throw new IllegalArgumentException("Object folderTwo is not exists or it is not a folder");
-        }
-		if (compareType == null) {
-			throw new IllegalArgumentException("Argument compareType can't be null");
-		}
-		this.folderOne = folderOne;
-		this.folderTwo = folderTwo;
-		this.compareType = compareType;
+		this.rootFolder = rootFolder;
+        this.itemMap = new TreeMap<>();
+		itemSet = scanFolder(rootFolder, rootFolder, comparator, itemMap);
 	}
-	
-	public 
+
+	public Set<TItemGeneric> getComplement(TSync otherSync, CompareType compareType) {
+		Comparator<TItemGeneric> comparator;
+
+		if(compareType == CompareType.CRC) {
+			comparator = new TComparatorItemCRC();
+		} else {
+			comparator = new TComparatorItemFilename();
+		}
+		HashSet<TItemGeneric> setComplement = new HashSet<>();
+		setComplement.addAll(this.getSet());
+		setComplement.removeAll(otherSync.getSet());
+
+		return setComplement;
+	}
+
+	public Set<TItemGeneric> getSet() {
+		return itemSet;
+	}
 	
 	private static File parseArgsForFolderOne(String[] args) {
 		if (args.length != 4) {
@@ -98,13 +109,9 @@ public class TSync {
 			return null;
 		}
         if(args[1].equalsIgnoreCase("crc")) {
-			comparator = new TComparatorItemCRC();
-
         	return CompareType.CRC;
 		}
         if(args[1].equalsIgnoreCase("filename")) {
-			comparator = new TComparatorItemFilename();
-
         	return CompareType.FILENAME;
 		}
 		
@@ -150,8 +157,11 @@ public class TSync {
     }
 */
 
-    private static Set<TItemGeneric> scanFolder(File folder, File root, Map<Long, List<TItemGeneric>> map) {
-        TreeSet<TItemGeneric> finalSet = new TreeSet<>(comparator);
+    private static Set<TItemGeneric> scanFolder(File folder,
+												File root,
+												CompareType compareType,
+												Map<Long, List<TItemGeneric>> map) {
+    	Set<TItemGeneric> finalSet = new HashSet<>();
 		File[] childes = folder.listFiles();
 
 		if(childes == null) {
@@ -160,8 +170,8 @@ public class TSync {
 		}
 		for (File obj : childes) {
 			if (obj.isDirectory()) {
-				finalSet.addAll(scanFolder(obj, root, map));		//recursive call
-			} else if (type == CompareType.CRC) {
+				finalSet.addAll(scanFolder(obj, root, compareType, map));		//recursive call
+			} else if (compareType == CompareType.CRC) {
 				TItemGeneric item = new TItemCRC(obj, root);
 				finalSet.add(item);		//recursive call
 				if (map.get(item.getCrcValue()) != null) {	//уже имеется список, состоящий минимум из одного файла
@@ -173,7 +183,7 @@ public class TSync {
 				}
 				currentStage++;
 				printProgressBar(currentStage, countSubItems);
-			} else if (type == CompareType.FILENAME) {
+			} else if (compareType == CompareType.FILENAME) {
 				TItemGeneric item = new TItemFilename(obj, root);
 				finalSet.add(item);	//recursive call
 				if (map.get(item.getCrcValue()) != null) {	//уже имеется список, состоящий минимум из одного файла
@@ -210,15 +220,7 @@ public class TSync {
 		return count;
 	}
 
-	private static Set<TItemGeneric> symmetricDifference() {
-		TreeSet<TItemGeneric> symDiff = new TreeSet<>(comparator);
-		symDiff.addAll(setOne);
-		symDiff.addAll(setTwo);
-		symDiff.removeAll(intersection());
-		
-		return symDiff;
-	}
-	
+/*
 	private static Set<TItemGeneric> intersection() {
 		TreeSet<TItemGeneric> intersection = new TreeSet<>(comparator);
 		intersection.addAll(setOne);
@@ -226,7 +228,7 @@ public class TSync {
 
 		return intersection;
 	}
-	
+
 	private static void printSymmetricDifference() {
 		Set<TItemGeneric> symmetricDifference = symmetricDifference();
 		if (symmetricDifference.size() == 0) {
@@ -243,6 +245,7 @@ public class TSync {
 			}
 		}
 	}
+*/
 	
 	private static void printDuplicates(Map<Long, List<TItemGeneric>> map) {
 		System.out.println("Display duplicate file information:");
