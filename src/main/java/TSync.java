@@ -50,8 +50,8 @@ public class TSync {
 		TSync tSyncInstance2 = new TSync(folderTwo, compareType);
 		Set<TItemGeneric> complement1 = tSyncInstance1.getComplement(tSyncInstance2);
 		Set<TItemGeneric> complement2 = tSyncInstance2.getComplement(tSyncInstance1);
-		printComplement(complement1);
-		printComplement(complement2);
+		printComplement(folderOne + " differs from " + folderTwo + " in the following files:", "1) ", complement1);
+		printComplement(folderTwo + " differs from " + folderOne + " in the following files:", "2) ", complement2);
 		int k = 44;
     }
 	
@@ -243,9 +243,12 @@ public class TSync {
 		}
 	}
 */
-	private static void printComplement(Set<TItemGeneric> set) {
-		for(TItemGeneric item : set) {
-			System.out.println(item.getRelative());
+	private static void printComplement(String message, String prefix, Set<TItemGeneric> set) {
+		TItemGeneric[] items = set.toArray(new TItemGeneric[1]);
+		Arrays.sort(items, new TComparatorArray());
+		System.out.println(message);
+		for(TItemGeneric item : items) {
+			System.out.println(prefix + item.getRelative());
 		}
 	}
 	
@@ -268,11 +271,14 @@ public class TSync {
 
 	private static void printHelp() {
 		System.out.println("TreeSync, version " + PROGRAM_VERSION);
-		System.out.println("Utility for compare the contents of two folders and duplicates search");
-		System.out.println("1) Usage checking by CRC: java -jar ts.jar -c crc Path_to_first_checking_folder Path_to_second_checking_folder");
-		System.out.println("2) Usage checking by file name: java -jar ts.jar -c filename Path_to_first_checking_folder Path_to_second_checking_folder");
-		System.out.println("Example 1: java -jar ts.jar -c crc C:\\Temp D:\\Projects");
-		System.out.println("Example 2: java -jar ts.jar -c filename C:\\Temp D:\\Projects");
+		System.out.println("Utility for compare the contents of two folders and for duplicate files search");
+		System.out.println("Usage: java -jar ts.jar [-c (crc | filename) <Path1> <Path2>] [-d <Path3>]");
+		System.out.println("-c				Use \"compare mode\". In this mode the utility compares ");
+		System.out.println("				the contents of two directories that are specified in the Path1, Path2 arguments.");
+		System.out.println("				Key \"crc\" is used when checksum comparison is used");
+		System.out.println("				Key \"filename\" is used when file names comparison is used");
+		System.out.println("-d				Use \"duplicate search mode\". In this mode the utility searches for duplicate files ");
+		System.out.println("				in the directory that is specified in the Path3 argument");
 	}
 
 	private static void printProgressBar(int currentStage, int maxStage) {
