@@ -2,7 +2,7 @@ import java.io.File;
 import java.util.*;
 
 public class TSync {
-	private static final String PROGRAM_VERSION = "1.3.0";
+	private static final String PROGRAM_VERSION = "1.3.1";
 /*
     private static File FOLDER_ONE;
     private static File FOLDER_TWO;
@@ -46,12 +46,16 @@ public class TSync {
 			printHelp();
 			System.exit(1);
 		}
-		TSync tSyncInstance1 = new TSync(folderOne);
-		TSync tSyncInstance2 = new TSync(folderTwo);
-		tSyncInstance1.getComplement(tSyncInstance2, CompareType.CRC);
+		TSync tSyncInstance1 = new TSync(folderOne, compareType);
+		TSync tSyncInstance2 = new TSync(folderTwo, compareType);
+		Set<TItemGeneric> complement1 = tSyncInstance1.getComplement(tSyncInstance2);
+		Set<TItemGeneric> complement2 = tSyncInstance2.getComplement(tSyncInstance1);
+		printComplement(complement1);
+		printComplement(complement2);
+		int k = 44;
     }
 	
-	public TSync(File rootFolder) {
+	public TSync(File rootFolder, CompareType compareType) {
 		if (rootFolder == null) {
 			throw new IllegalArgumentException("Argument rootFolder can't be null");
 		}
@@ -60,17 +64,10 @@ public class TSync {
         }
 		this.rootFolder = rootFolder;
         this.itemMap = new TreeMap<>();
-		itemSet = scanFolder(rootFolder, rootFolder, comparator, itemMap);
+		itemSet = scanFolder(rootFolder, rootFolder, compareType, itemMap);
 	}
 
-	public Set<TItemGeneric> getComplement(TSync otherSync, CompareType compareType) {
-		Comparator<TItemGeneric> comparator;
-
-		if(compareType == CompareType.CRC) {
-			comparator = new TComparatorItemCRC();
-		} else {
-			comparator = new TComparatorItemFilename();
-		}
+	public Set<TItemGeneric> getComplement(TSync otherSync) {
 		HashSet<TItemGeneric> setComplement = new HashSet<>();
 		setComplement.addAll(this.getSet());
 		setComplement.removeAll(otherSync.getSet());
@@ -182,7 +179,7 @@ public class TSync {
 					map.put(item.getCrcValue(), list);
 				}
 				currentStage++;
-				printProgressBar(currentStage, countSubItems);
+//				printProgressBar(currentStage, countSubItems);
 			} else if (compareType == CompareType.FILENAME) {
 				TItemGeneric item = new TItemFilename(obj, root);
 				finalSet.add(item);	//recursive call
@@ -194,7 +191,7 @@ public class TSync {
 					map.put(item.getCrcValue(), list);
 				}
 				currentStage++;
-				printProgressBar(currentStage, countSubItems);
+//				printProgressBar(currentStage, countSubItems);
 			}
 		}
 
@@ -246,6 +243,11 @@ public class TSync {
 		}
 	}
 */
+	private static void printComplement(Set<TItemGeneric> set) {
+		for(TItemGeneric item : set) {
+			System.out.println(item.getRelative());
+		}
+	}
 	
 	private static void printDuplicates(Map<Long, List<TItemGeneric>> map) {
 		System.out.println("Display duplicate file information:");
