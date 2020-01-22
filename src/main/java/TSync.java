@@ -41,18 +41,28 @@ public class TSync {
 */
 		File folderOne = parseArgsForFolderOne(args);
 		File folderTwo = parseArgsForFolderTwo(args);
+		File folderDup = parseArgsForFolderDup(args);
 		CompareType compareType = parseArgsForType(args);
-		if (folderOne == null || folderTwo == null || compareType == null) {
+		if (compareType != null && (folderOne == null || folderTwo == null)) {
 			printHelp();
 			System.exit(1);
 		}
-		TSync tSyncInstance1 = new TSync(folderOne, compareType);
-		TSync tSyncInstance2 = new TSync(folderTwo, compareType);
-		Set<TItemGeneric> complement1 = tSyncInstance1.getComplement(tSyncInstance2);
-		Set<TItemGeneric> complement2 = tSyncInstance2.getComplement(tSyncInstance1);
-		printComplement(folderOne + " differs from " + folderTwo + " in the following files:", "1) ", complement1);
-		printComplement(folderTwo + " differs from " + folderOne + " in the following files:", "2) ", complement2);
-		int k = 44;
+		if (compareType == null && folderDup == null) {
+			printHelp();
+			System.exit(1);
+		}
+		if (compareType == CompareType.CRC || compareType == CompareType.FILENAME) {
+			TSync tSyncInstance1 = new TSync(folderOne, compareType);
+			TSync tSyncInstance2 = new TSync(folderTwo, compareType);
+			Set<TItemGeneric> complement1 = tSyncInstance1.getComplement(tSyncInstance2);
+			Set<TItemGeneric> complement2 = tSyncInstance2.getComplement(tSyncInstance1);
+			printComplement(folderOne + " differs from " + folderTwo + " in the following files:", "1) ", complement1);
+			printComplement(folderTwo + " differs from " + folderOne + " in the following files:", "2) ", complement2);
+		}
+		if (folderDup != null) {
+			TSync tSyncInstance3 = new TSync(folderOne);
+			tSyncInstance3.printDuplicates(tSyncInstance3.getMap());
+		}
     }
 	
 	public TSync(File rootFolder, CompareType compareType) {
@@ -67,6 +77,18 @@ public class TSync {
 		itemSet = scanFolder(rootFolder, rootFolder, compareType, itemMap);
 	}
 
+	public TSync(File rootFolder) {
+		if (rootFolder == null) {
+			throw new IllegalArgumentException("Argument rootFolder can't be null");
+		}
+		if (!rootFolder.exists() || !rootFolder.isDirectory()) {
+			throw new IllegalArgumentException("Object rootFolder is not exists or it is not a folder");
+		}
+		this.rootFolder = rootFolder;
+		this.itemMap = new TreeMap<>();
+		itemSet = scanFolder(rootFolder, rootFolder, CompareType.CRC, itemMap);
+	}
+
 	public Set<TItemGeneric> getComplement(TSync otherSync) {
 		HashSet<TItemGeneric> setComplement = new HashSet<>();
 		setComplement.addAll(this.getSet());
@@ -77,6 +99,10 @@ public class TSync {
 
 	public Set<TItemGeneric> getSet() {
 		return itemSet;
+	}
+
+	public Map<Long, List<TItemGeneric>> getMap() {
+    	return itemMap;
 	}
 	
 	private static File parseArgsForFolderOne(String[] args) {
@@ -94,24 +120,45 @@ public class TSync {
 
 		return new File(args[3]);
 	}
-	
+
+	private static File parseArgsForFolderDup(String[] args) {
+		if(!(args.length == 4 || args.length == 4 || args.length == 2)) {
+			return null;
+		}
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-d")) {
+				if(args[i + 1] != null) {
+					return new File(args[i + 1]);
+				} else {
+					return null;
+				}
+			}
+		}
+
+		return null;
+	}
+
 	private static CompareType parseArgsForType(String[] args) {
-        if(args.length != 4) {
+        if(!(args.length == 4 || args.length == 4 || args.length == 2)) {
 			return null;
         }
+        for (int i = 0; i < args.length; i++) {
+        	if (args[i].equals("-c")) {
+				if(args[i + 1].equalsIgnoreCase("crc")) {
+					return CompareType.CRC;
+				}
+				if(args[i + 1].equalsIgnoreCase("filename")) {
+					return CompareType.FILENAME;
+				}
+			}
+		}
         if(!args[0].equalsIgnoreCase("-c")) {
 			return null;
 		}
         if(!args[1].equalsIgnoreCase("crc") && !args[1].equalsIgnoreCase("filename")) {
 			return null;
 		}
-        if(args[1].equalsIgnoreCase("crc")) {
-        	return CompareType.CRC;
-		}
-        if(args[1].equalsIgnoreCase("filename")) {
-        	return CompareType.FILENAME;
-		}
-		
+
 		return null;
 	}
 
@@ -252,14 +299,14 @@ public class TSync {
 		}
 	}
 	
-	private static void printDuplicates(Map<Long, List<TItemGeneric>> map) {
+	public static void printDuplicates(Map<Long, List<TItemGeneric>> map) {
 		System.out.println("Display duplicate file information:");
 		Iterator<List<TItemGeneric>> iterator = map.values().iterator();
 		int step = 1;
 		while (iterator.hasNext()) {
 			List<TItemGeneric> list = iterator.next();
 			if (list.size() > 1) {	//Найдены дубликаты
-				System.out.println(step + ") Duplicates found:");
+				System.out.println(step + ") Duplicate files found:");
 				for (TItemGeneric item : list) {
 					System.out.println(step + ") " + item.getAbsolutePath());
 				}
