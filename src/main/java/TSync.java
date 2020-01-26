@@ -3,42 +3,12 @@ import java.util.*;
 
 public class TSync {
 	private static final String PROGRAM_VERSION = "1.3.1";
-/*
-    private static File FOLDER_ONE;
-    private static File FOLDER_TWO;
-    private static Set<TItemGeneric> setOne;
-    private static Set<TItemGeneric> setTwo;
-	private static Map<Long, List<TItemGeneric>> mapOne;
-	private static Map<Long, List<TItemGeneric>> mapTwo;
-    private static CompareType type;
-    private static Comparator<TItemGeneric> comparator;
-*/
     private static int countSubItems = 0;
     private static int currentStage = 0;
-
-	private File rootFolder;
 	private Set<TItemGeneric> itemSet;
 	private Map<Long, List<TItemGeneric>> itemMap;
 
     public static void main(String[] args) {
-/*		
-		checkArgs(args);
-		long startTime = System.nanoTime();
-		countSubItems += countSubItems(FOLDER_ONE);
-		countSubItems += countSubItems(FOLDER_TWO);
-		mapOne = new TreeMap<>();
-		mapTwo = new TreeMap<>();
-        setOne = scanFolder(FOLDER_ONE, FOLDER_ONE, mapOne);
-        setTwo = scanFolder(FOLDER_TWO, FOLDER_TWO, mapTwo);
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime) / 1_000_000_000;
-        System.out.println("Execution time: " + duration + " seconds");   //in seconds
-		printSymmetricDifference();
-		System.out.println("Printout duplicates for " + FOLDER_ONE);
-		printDuplicates(mapOne);
-		System.out.println("Printout duplicates for " + FOLDER_TWO);
-		printDuplicates(mapTwo);
-*/
 		File folderOne = parseArgsForFolderOne(args);
 		File folderTwo = parseArgsForFolderTwo(args);
 		File folderDup = parseArgsForFolderDup(args);
@@ -60,7 +30,7 @@ public class TSync {
 			printComplement(folderTwo + " differs from " + folderOne + " in the following files:", "2) ", complement2);
 		}
 		if (folderDup != null) {
-			TSync tSyncInstance3 = new TSync(folderOne);
+			TSync tSyncInstance3 = new TSync(folderDup);
 			tSyncInstance3.printDuplicates(tSyncInstance3.getMap());
 		}
     }
@@ -72,7 +42,6 @@ public class TSync {
         if (!rootFolder.exists() || !rootFolder.isDirectory()) {
 			throw new IllegalArgumentException("Object rootFolder is not exists or it is not a folder");
         }
-		this.rootFolder = rootFolder;
         this.itemMap = new TreeMap<>();
 		itemSet = scanFolder(rootFolder, rootFolder, compareType, itemMap);
 	}
@@ -84,7 +53,6 @@ public class TSync {
 		if (!rootFolder.exists() || !rootFolder.isDirectory()) {
 			throw new IllegalArgumentException("Object rootFolder is not exists or it is not a folder");
 		}
-		this.rootFolder = rootFolder;
 		this.itemMap = new TreeMap<>();
 		itemSet = scanFolder(rootFolder, rootFolder, CompareType.CRC, itemMap);
 	}
@@ -162,45 +130,6 @@ public class TSync {
 		return null;
 	}
 
-/*
-    private static void checkArgs(String[] args) {
-        if(args.length != 4) {
-			printHelp();
-			System.exit(1);
-        }
-        if(!args[0].equalsIgnoreCase("-c")) {
-			printHelp();
-			System.exit(1);
-		}
-        if(!args[1].equalsIgnoreCase("crc") && !args[1].equalsIgnoreCase("filename")) {
-        	printHelp();
-			System.exit(1);
-		}
-        if(args[1].equalsIgnoreCase("crc")) {
-        	type = Type.CRC;
-		}
-        if(args[1].equalsIgnoreCase("filename")) {
-        	type = Type.FILENAME;
-		}
-        FOLDER_ONE = new File(args[2]);
-        FOLDER_TWO = new File(args[3]);
-        if (!FOLDER_ONE.exists() || !FOLDER_ONE.isDirectory()) {
-            System.out.println("First checking file object is not exists or it is not a folder");
-            System.exit(1);
-        }
-        if (!FOLDER_TWO.exists() || !FOLDER_TWO.isDirectory()) {
-            System.out.println("Second checking file object is not exists or it is not a folder");
-            System.exit(1);
-        }
-		if(type == Type.CRC) {
-			comparator = new TComparatorItemCRC();
-		}
-		if(type == Type.FILENAME) {
-			comparator = new TComparatorItemFilename();
-		}
-    }
-*/
-
     private static Set<TItemGeneric> scanFolder(File folder,
 												File root,
 												CompareType compareType,
@@ -264,33 +193,11 @@ public class TSync {
 		return count;
 	}
 
-/*
-	private static Set<TItemGeneric> intersection() {
-		TreeSet<TItemGeneric> intersection = new TreeSet<>(comparator);
-		intersection.addAll(setOne);
-		intersection.retainAll(setTwo);
-
-		return intersection;
-	}
-
-	private static void printSymmetricDifference() {
-		Set<TItemGeneric> symmetricDifference = symmetricDifference();
-		if (symmetricDifference.size() == 0) {
+	private static void printComplement(String message, String prefix, Set<TItemGeneric> set) {
+		if (set.size() == 0) {
+			System.out.println("No differences found");
 			return;
 		}
-		TItemGeneric[] items = symmetricDifference.toArray(new TItemGeneric[1]);
-		Arrays.sort(items, new TComparatorArray());
-		System.out.println("Printout of differences between folder contents:");
-		for(TItemGeneric item : items) {
-			if(item.getRoot().equals(FOLDER_ONE.getPath())) {
-				System.out.println("(1) " + item.getRelative());
-			} else {
-				System.out.println("(2) " + item.getRelative());
-			}
-		}
-	}
-*/
-	private static void printComplement(String message, String prefix, Set<TItemGeneric> set) {
 		TItemGeneric[] items = set.toArray(new TItemGeneric[1]);
 		Arrays.sort(items, new TComparatorArray());
 		System.out.println(message);
@@ -300,7 +207,7 @@ public class TSync {
 	}
 	
 	public static void printDuplicates(Map<Long, List<TItemGeneric>> map) {
-		System.out.println("Display duplicate file information:");
+		System.out.println("Display duplicate files information:");
 		Iterator<List<TItemGeneric>> iterator = map.values().iterator();
 		int step = 1;
 		while (iterator.hasNext()) {
