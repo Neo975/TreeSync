@@ -1,3 +1,5 @@
+package com.hubber.TreeSync;
+
 import java.io.File;
 
 public class TItemCRC extends TItemGeneric {

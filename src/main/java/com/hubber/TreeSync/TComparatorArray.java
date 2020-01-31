@@ -1,3 +1,5 @@
+package com.hubber.TreeSync;
+
 import java.util.Comparator;
 
 public class TComparatorArray implements Comparator<TItemGeneric> {
